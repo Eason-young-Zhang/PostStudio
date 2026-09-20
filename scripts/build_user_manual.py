@@ -92,8 +92,8 @@ def main():
     source = SOURCE.read_text(encoding='utf-8')
     toc = re.findall(r'^\d+\. \[([^\]]+)\]\(#([a-z]+)\)$', source, re.M)
     nav = ''.join(f'<a href="#{anchor}">{n}. {html.escape(title)}</a>' for n, (title, anchor) in enumerate(toc, 1))
-    document = '<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="PostStudio 0.4.1 本地测试版 完整用户手册：按流程学习导入、取样、配色、工作流、导出与项目分享。"><title>PostStudio · 用户手册</title><style>' + STYLE + '</style></head><body>'
-    document += '<aside aria-label="手册导航"><div class="brand">POST / STUDIO</div><div class="sub">用户手册 · 0.4.1 本地测试版 · 离线阅读版</div><nav>' + nav + '</nav><button class="print" onclick="window.print()">打印 / 保存为 PDF</button></aside><main>'
+    document = '<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="PostStudio 0.4.2 本地测试版 完整用户手册：按流程学习导入、取样、配色、工作流、导出与项目分享。"><title>PostStudio · 用户手册</title><style>' + STYLE + '</style></head><body>'
+    document += '<aside aria-label="手册导航"><div class="brand">POST / STUDIO</div><div class="sub">用户手册 · 0.4.2 本地测试版 · 离线阅读版</div><nav>' + nav + '</nav><button class="print" onclick="window.print()">打印 / 保存为 PDF</button></aside><main>'
     document += render(source)
     document += '<footer>本页由 USER_GUIDE.md 生成。正文与示例图片均内嵌，可离线阅读；外部来源链接需要网络，其他项目文档链接需要保留文档目录。</footer></main></body></html>\n'
     TARGET.write_text(document, encoding='utf-8')

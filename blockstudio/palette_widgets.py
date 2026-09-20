@@ -34,17 +34,17 @@ class PaletteControls(QWidget):
         row=QHBoxLayout();row.addWidget(push('图内取色',self.start_pick));row.addWidget(push('自选颜色',self.choose));el.addLayout(row)
         el.addWidget(push('保留锁色 · 重新提取',self.reextract));self.note=QLabel();self.note.setWordWrap(True);self.note.setObjectName('muted');el.addWidget(self.note)
         tabs.addTab(extraction,'提色')
-        page=QWidget();pl=QVBoxLayout(page);pl.setContentsMargins(0,12,0,0);form=QFormLayout();pl.addLayout(form)
+        page=QWidget();pl=QVBoxLayout(page);pl.setContentsMargins(0,12,0,0);form=QFormLayout();form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);pl.addLayout(form)
         self.style=QComboBox();self.style.addItem('色条','strip');self.style.addItem('色卡环','ring');form.addRow('形态',self.style)
         self.proportional=QCheckBox('按颜色占比分段');form.addRow(self.proportional)
         self.side=QComboBox()
         for label,value in [('下方','bottom'),('上方','top'),('左侧','left'),('右侧','right')]:self.side.addItem(label,value)
         form.addRow('位置',self.side);self.numbers={}
         for key,label,low,high,value in [('size','色卡尺寸',4,60,16),('gap','间距',0,20,2),('margin','留边',0,20,3)]:
-            row=QHBoxLayout();slider=QSlider(Qt.Orientation.Horizontal);slider.setRange(low,high);slider.setValue(value)
-            spin=QDoubleSpinBox();spin.setDecimals(1);spin.setSingleStep(.1);spin.setRange(low,high);spin.setSuffix(' %');spin.setValue(value);spin.setKeyboardTracking(False)
-            slider.valueChanged.connect(spin.setValue);spin.valueChanged.connect(lambda value,s=slider:self.sync_slider(s,value));spin.valueChanged.connect(self.emit_changed)
-            row.addWidget(slider,1);row.addWidget(spin);form.addRow(label,row);self.numbers[key]=spin
+            from .effect_controls import number
+            spin=number(value,low,high);spin.setSuffix(' %');spin.setAccessibleName(label)
+            spin.valueChanged.connect(self.emit_changed)
+            form.addRow(label,spin);self.numbers[key]=spin
         hint=QLabel('尺寸、间距与留边以照片短边为基准。');hint.setWordWrap(True);hint.setObjectName('muted');pl.addWidget(hint)
         self.transparent=QCheckBox('背景透明');pl.addWidget(self.transparent)
         self.bg=push('背景 · #F1EDE5',self.choose_background);pl.addWidget(self.bg);pl.addWidget(push('从图片取背景色',self.start_background_pick))

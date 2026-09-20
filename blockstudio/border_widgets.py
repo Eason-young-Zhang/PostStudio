@@ -17,20 +17,20 @@ class BorderControls(QWidget):
         for label,fn in [('＋',self.add),('复制',self.duplicate),('删除',self.remove),('↑',lambda:self.move(-1)),('↓',lambda:self.move(1))]:
             b=QPushButton(label);b.clicked.connect(fn);row.addWidget(b)
         self.enabled=QCheckBox('启用此层');v.addWidget(self.enabled);self.enabled.toggled.connect(self.change)
-        f=QFormLayout();f.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);v.addLayout(f);self.mode=QComboBox();self.mode.addItems(['外扩','内遮']);f.addRow('方式',self.mode);self.mode.currentIndexChanged.connect(self.change)
+        f=QFormLayout();f.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);f.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);v.addLayout(f);self.mode=QComboBox();self.mode.addItems(['外扩','内遮']);f.addRow('方式',self.mode);self.mode.currentIndexChanged.connect(self.change)
         self.unit=QComboBox();self.unit.addItems(['短边百分比','像素']);f.addRow('单位',self.unit);self.unit.currentIndexChanged.connect(self.change)
         self.values={}
         for key,label,hi in [('top','上边宽',10000),('right','右边宽',10000),('bottom','下边宽',10000),('left','左边宽',10000),('radius','圆角',10000),('opacity','不透明度 %',100),('outer_scale','外框整体尺寸 %',1000),('position_x','内容水平位置 %',100),('position_y','内容垂直位置 %',100),('stroke','描边宽',10000)]:
-            spin=number(100 if key=='outer_scale' else 0,100 if key=='outer_scale' else 0,hi);f.addRow(label,spin);self.values[key]=spin;spin.valueChanged.connect(lambda _,k=key:self.change(k))
+            spin=number(100 if key=='outer_scale' else 0,100 if key=='outer_scale' else 0,hi);spin.setAccessibleName(label);f.addRow(label,spin);self.values[key]=spin;spin.valueChanged.connect(lambda _,k=key:self.change(k))
         self.link=QComboBox();self.link.addItems(['四边独立','四边同值','横纵成对']);f.addRow('留边联动',self.link)
         self.ratio=QComboBox();self.ratio.addItems(['自由外框','保持当前外框比例','外框匹配图像比例','指定外框比例']);f.addRow('外框比例',self.ratio);self.ratio.currentIndexChanged.connect(self.ratio_change)
         self.ratio_options=QWidget();rv=QVBoxLayout(self.ratio_options);rv.setContentsMargins(0,0,0,0)
         self.ratio_presets=QComboBox()
         for label,pair in [('1:1',(1,1)),('3:2',(3,2)),('2:3',(2,3)),('4:3',(4,3)),('3:4',(3,4)),('16:9',(16,9)),('9:16',(9,16)),('5:4',(5,4)),('4:5',(4,5)),('自定义',None)]:self.ratio_presets.addItem(label,pair)
-        rv.addWidget(self.ratio_presets);ratio_row=QHBoxLayout();rv.addLayout(ratio_row)
+        rv.addWidget(self.ratio_presets);ratio_row=QFormLayout();ratio_row.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);ratio_row.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);rv.addLayout(ratio_row)
         self.ratio_width=number(3,.001,10000);self.ratio_height=number(2,.001,10000)
         for control,label in [(self.ratio_width,'比例宽'),(self.ratio_height,'比例高')]:control.setDecimals(3);control.setSingleStep(.1);control.setAccessibleName(label)
-        ratio_row.addWidget(self.ratio_width);ratio_row.addWidget(QLabel(':'));ratio_row.addWidget(self.ratio_height)
+        ratio_row.addRow('比例宽',self.ratio_width);ratio_row.addRow('比例高',self.ratio_height)
         hint=QLabel('宽 : 高。扩展外围留白以容纳图像，不裁切或拉伸照片。');hint.setWordWrap(True);rv.addWidget(hint)
         f.addRow(self.ratio_options);self.ratio_presets.activated.connect(self.choose_ratio)
         self.ratio_width.valueChanged.connect(self.custom_ratio_changed);self.ratio_height.valueChanged.connect(self.custom_ratio_changed)
@@ -38,7 +38,10 @@ class BorderControls(QWidget):
         self.color_button=QPushButton();self.color_button.clicked.connect(self.choose);f.addRow('边框颜色',self.color_button)
         self.background=BackgroundControls();v.addWidget(self.background);self.background.changed.connect(self.change)
         self.shadow=ShadowControls();v.addWidget(self.shadow);self.shadow.changed.connect(self.change)
-        self.list.currentRowChanged.connect(self.select);self.refresh()
+        self.unit.currentIndexChanged.connect(self.slider_ranges);self.list.currentRowChanged.connect(self.select);self.refresh()
+    def slider_ranges(self,*_):
+        span=1200 if self.unit.currentIndex() else 100
+        for key in ('top','right','bottom','left','radius','stroke'):self.values[key].setSliderRange(0,span)
     def choose(self):
         c=QColorDialog.getColor(QColor(self.color),self)
         if c.isValid():self.color=c.name();color_icon(self.color_button,self.color);self.change()
@@ -61,7 +64,7 @@ class BorderControls(QWidget):
         pair=p.get('custom_ratio',[3,2]);self.ratio_width.setValue(pair[0]);self.ratio_height.setValue(pair[1]);self.sync_ratio_preset()
         self.ratio_options.setVisible(p['ratio_mode']==3);self.ratio_options.setEnabled(p['mode']=='outer')
         self.ratio.setCurrentIndex(p['ratio_mode']);self.ratio.setEnabled(p['mode']=='outer');self.values['outer_scale'].setEnabled(p['mode']=='outer');self.style.setCurrentIndex(p['style']=='stroke')
-        self.color=p['background'].get('color','#f1ede5');color_icon(self.color_button,self.color);self.background.load(p['background']);self.shadow.load(p['shadow']);self.loading=False
+        self.color=p['background'].get('color','#f1ede5');color_icon(self.color_button,self.color);self.background.load(p['background']);self.shadow.load(p['shadow']);self.slider_ranges();self.loading=False
     def add(self):self.layers.append(copy.deepcopy(DEFAULT_LAYER));self.index=len(self.layers)-1;self.refresh();self.changed.emit()
     def duplicate(self):self.layers.append(copy.deepcopy(self.layers[self.index]));self.index=len(self.layers)-1;self.refresh();self.changed.emit()
     def remove(self):

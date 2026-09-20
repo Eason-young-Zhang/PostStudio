@@ -141,3 +141,7 @@ PYTHONPATH=. .venv/bin/python scripts/capture_manual.py
 ```
 
 提交前检查 `git diff --cached`，不要使用强制推送覆盖远端已有历史。
+
+## 0.4.2 数值控件
+
+`number_control.NumberControl` 组合 QDoubleSpinBox 与 QSlider；`effect_controls.number` 为共享入口。存储值来自输入框；阻塞外层信号时仍同步滑条，避免加载和联动残留。滑条范围单独配置，不缩小输入框的合法范围。新增参数需设置可访问名称，并为像素／百分比切换指定常用范围。
