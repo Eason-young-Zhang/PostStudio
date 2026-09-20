@@ -44,7 +44,7 @@ class PaletteControls(QWidget):
             from .effect_controls import number
             spin=number(value,low,high);spin.setSuffix(' %');spin.setAccessibleName(label)
             spin.valueChanged.connect(self.emit_changed)
-            form.addRow(label,spin);self.numbers[key]=spin
+            form.addRow(spin);self.numbers[key]=spin
         hint=QLabel('尺寸、间距与留边以照片短边为基准。');hint.setWordWrap(True);hint.setObjectName('muted');pl.addWidget(hint)
         self.transparent=QCheckBox('背景透明');pl.addWidget(self.transparent)
         self.bg=push('背景 · #F1EDE5',self.choose_background);pl.addWidget(self.bg);pl.addWidget(push('从图片取背景色',self.start_background_pick))

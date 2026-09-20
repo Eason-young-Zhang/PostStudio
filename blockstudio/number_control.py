@@ -1,7 +1,7 @@
 """Decimal slider plus exact entry; the spin box is the value authority."""
 import math
 from PySide6.QtCore import Qt, Signal, QSignalBlocker
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QDoubleSpinBox, QSlider, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QDoubleSpinBox, QSlider, QSizePolicy
 
 
 class NumberControl(QWidget):
@@ -23,7 +23,14 @@ class NumberControl(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(3)
-        layout.addWidget(self.spin)
+        self.label = QLabel()
+        self.label.setWordWrap(True)
+        self.label.setBuddy(self.spin)
+        self.spin.setFixedWidth(116)
+        header = QHBoxLayout()
+        header.addWidget(self.label, 1)
+        header.addWidget(self.spin)
+        layout.addLayout(header)
         layout.addWidget(self.slider)
         self.setFocusProxy(self.spin)
         self.preferred = (max(low, -100), min(high, 100)) if high >= 10000 else (low, high)
@@ -66,5 +73,6 @@ class NumberControl(QWidget):
     def setSuffix(self, value): self.spin.setSuffix(value)
     def setAccessibleName(self, name):
         super().setAccessibleName(name)
+        self.label.setText(name)
         self.spin.setAccessibleName(name + '精确值')
         self.slider.setAccessibleName(name + '滑动条')

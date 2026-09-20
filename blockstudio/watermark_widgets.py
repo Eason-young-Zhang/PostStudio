@@ -35,7 +35,7 @@ class WatermarkControls(QWidget):
         self.anchor=QComboBox();self.anchor.addItems(['左上','上中','右上','左中','居中','右中','左下','下中','右下']);f.addRow('锚点',self.anchor);self.anchor.currentIndexChanged.connect(self.change)
         self.values={}
         for key,label,lo,hi in [('size','字号',.1,1000),('width','水印宽度 %',.1,200),('x','水平偏移',-10000,10000),('y','垂直偏移',-10000,10000),('opacity','不透明度 %',0,100),('rotation','旋转 °',-360,360),('spacing','字距（字号 %）',-50,200),('line_height','行距 %',50,300),('stroke','描边（字号 %）',0,100)]:
-            n=number(0,lo,hi);n.setAccessibleName(label);self.values[key]=n;f.addRow(label,n);n.valueChanged.connect(self.change)
+            n=number(0,lo,hi);n.setAccessibleName(label);self.values[key]=n;f.addRow(n);n.valueChanged.connect(self.change)
         self.color_buttons={}
         for key,label in [('color','文字颜色'),('stroke_color','描边颜色')]:
             b=QPushButton();b.clicked.connect(lambda _,k=key:self.choose(k));f.addRow(label,b);self.color_buttons[key]=b

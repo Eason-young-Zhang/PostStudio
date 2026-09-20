@@ -21,7 +21,7 @@ class BorderControls(QWidget):
         self.unit=QComboBox();self.unit.addItems(['短边百分比','像素']);f.addRow('单位',self.unit);self.unit.currentIndexChanged.connect(self.change)
         self.values={}
         for key,label,hi in [('top','上边宽',10000),('right','右边宽',10000),('bottom','下边宽',10000),('left','左边宽',10000),('radius','圆角',10000),('opacity','不透明度 %',100),('outer_scale','外框整体尺寸 %',1000),('position_x','内容水平位置 %',100),('position_y','内容垂直位置 %',100),('stroke','描边宽',10000)]:
-            spin=number(100 if key=='outer_scale' else 0,100 if key=='outer_scale' else 0,hi);spin.setAccessibleName(label);f.addRow(label,spin);self.values[key]=spin;spin.valueChanged.connect(lambda _,k=key:self.change(k))
+            spin=number(100 if key=='outer_scale' else 0,100 if key=='outer_scale' else 0,hi);spin.setAccessibleName(label);f.addRow(spin);self.values[key]=spin;spin.valueChanged.connect(lambda _,k=key:self.change(k))
         self.link=QComboBox();self.link.addItems(['四边独立','四边同值','横纵成对']);f.addRow('留边联动',self.link)
         self.ratio=QComboBox();self.ratio.addItems(['自由外框','保持当前外框比例','外框匹配图像比例','指定外框比例']);f.addRow('外框比例',self.ratio);self.ratio.currentIndexChanged.connect(self.ratio_change)
         self.ratio_options=QWidget();rv=QVBoxLayout(self.ratio_options);rv.setContentsMargins(0,0,0,0)
@@ -30,7 +30,7 @@ class BorderControls(QWidget):
         rv.addWidget(self.ratio_presets);ratio_row=QFormLayout();ratio_row.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);ratio_row.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);rv.addLayout(ratio_row)
         self.ratio_width=number(3,.001,10000);self.ratio_height=number(2,.001,10000)
         for control,label in [(self.ratio_width,'比例宽'),(self.ratio_height,'比例高')]:control.setDecimals(3);control.setSingleStep(.1);control.setAccessibleName(label)
-        ratio_row.addRow('比例宽',self.ratio_width);ratio_row.addRow('比例高',self.ratio_height)
+        ratio_row.addRow(self.ratio_width);ratio_row.addRow(self.ratio_height)
         hint=QLabel('宽 : 高。扩展外围留白以容纳图像，不裁切或拉伸照片。');hint.setWordWrap(True);rv.addWidget(hint)
         f.addRow(self.ratio_options);self.ratio_presets.activated.connect(self.choose_ratio)
         self.ratio_width.valueChanged.connect(self.custom_ratio_changed);self.ratio_height.valueChanged.connect(self.custom_ratio_changed)

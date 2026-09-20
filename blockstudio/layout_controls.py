@@ -12,7 +12,7 @@ class LayoutControls(QGroupBox):
         self.unit=QComboBox();self.unit.addItems(['照片短边 %','像素']);f.addRow('尺寸单位',self.unit)
         self.values={}
         for key,label,value,low,high in [('top','上留边',3,0,10000),('right','右留边',3,0,10000),('bottom','下留边',3,0,10000),('left','左留边',3,0,10000),('gap','间距',2,0,10000),('card_width','色卡宽（0 自动）',0,0,30000),('card_height','色卡高（0 自动）',0,0,30000),('offset','色卡对齐偏移',0,-10000,10000),('outer_scale','外框整体尺寸 %',100,100,1000),('position_x','内容水平位置 %',50,0,100),('position_y','内容垂直位置 %',50,0,100)]:
-            spin=number(value,low,high);spin.setAccessibleName(label);self.values[key]=spin;f.addRow(label,spin);spin.valueChanged.connect(lambda _,k=key:self.value_changed(k))
+            spin=number(value,low,high);spin.setAccessibleName(label);self.values[key]=spin;f.addRow(spin);spin.valueChanged.connect(lambda _,k=key:self.value_changed(k))
         self.link=QComboBox();self.link.addItems(['四边独立','四边同值','横纵成对']);f.addRow('留边联动',self.link)
         self.actual=QLabel();self.actual.setWordWrap(True);f.addRow(self.actual)
         self.align=QComboBox();self.align.addItems(['起点（左 / 上）','居中','末端（右 / 下）']);self.align.setCurrentIndex(1);f.addRow('色卡对齐',self.align)

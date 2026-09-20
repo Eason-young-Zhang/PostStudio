@@ -21,7 +21,7 @@ class ShadowControls(QGroupBox):
         super().__init__(title);self.setCheckable(True);self.setChecked(False);self.color='#101923'
         f=QFormLayout(self);f.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);f.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);self.values={}
         for key,label,lo,hi,default in [('opacity','不透明度 %',0,100,25),('blur','模糊',0,500,12),('x','水平偏移',-1000,1000,0),('y','垂直偏移',-1000,1000,6)]:
-            spin=number(default,lo,hi);spin.setAccessibleName(label);f.addRow(label,spin);self.values[key]=spin;spin.valueChanged.connect(self.changed)
+            spin=number(default,lo,hi);spin.setAccessibleName(label);f.addRow(spin);self.values[key]=spin;spin.valueChanged.connect(self.changed)
         self.unit=QComboBox();self.unit.addItems(['像素','短边百分比']);f.addRow('单位',self.unit);self.unit.currentIndexChanged.connect(self.changed)
         self.pick=QPushButton();color_icon(self.pick,self.color);f.addRow('颜色',self.pick);self.pick.clicked.connect(self.choose);self.toggled.connect(self.changed)
     def choose(self):
@@ -41,11 +41,11 @@ class BackgroundControls(QGroupBox):
         for label,key in [('纯色（使用上方颜色）','solid'),('线性渐变','linear'),('径向渐变','radial')]:self.kind.addItem(label,key)
         f.addRow('类型',self.kind);self.values={}
         for key,label,lo,hi in [('angle','角度',-360,360),('cx','中心 X %',0,100),('cy','中心 Y %',0,100),('radius','半径 %',.1,200)]:
-            spin=number(self.data[key],lo,hi);spin.setAccessibleName(label);self.values[key]=spin;f.addRow(label,spin);spin.valueChanged.connect(self.changed)
+            spin=number(self.data[key],lo,hi);spin.setAccessibleName(label);self.values[key]=spin;f.addRow(spin);spin.valueChanged.connect(self.changed)
         self.stops=QListWidget();self.stops.setMaximumHeight(100);v.addWidget(self.stops);row=QHBoxLayout();v.addLayout(row)
         for label,fn in [('＋ 色标',self.add),('删除',self.remove),('颜色',self.choose)]:
             b=QPushButton(label);b.clicked.connect(fn);row.addWidget(b)
-        self.position=number(0,0,100);self.alpha=number(100,0,100);self.position.setAccessibleName("色标位置");self.alpha.setAccessibleName("色标不透明度");f2=QFormLayout();f2.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);f2.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);f2.addRow('色标位置 %',self.position);f2.addRow('色标不透明度 %',self.alpha);v.addLayout(f2)
+        self.position=number(0,0,100);self.alpha=number(100,0,100);self.position.setAccessibleName("色标位置 %");self.alpha.setAccessibleName("色标不透明度 %");f2=QFormLayout();f2.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);f2.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);f2.addRow(self.position);f2.addRow(self.alpha);v.addLayout(f2)
         self.stops.currentRowChanged.connect(self.select);self.position.valueChanged.connect(self.edit);self.alpha.valueChanged.connect(self.edit);self.kind.currentIndexChanged.connect(self.changed);self.refresh()
     def refresh(self,index=0):
         self.stops.blockSignals(True);self.stops.clear()
