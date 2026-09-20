@@ -1,0 +1,22 @@
+# Local Python environment and generated caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+# Build outputs and generated PyInstaller recipes
+build/
+dist/
+*.spec
+# Private projects, validation fixtures and local backups
+artifacts/
+*.blockproj
+# Machine files and credentials
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
