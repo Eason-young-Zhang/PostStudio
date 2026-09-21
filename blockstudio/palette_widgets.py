@@ -9,6 +9,7 @@ from .palette_render import DEFAULT_PALETTE
 from .palette import hex_color
 from .effect_controls import ShadowControls
 from .layout_controls import LayoutControls
+from .resize_handle import ListHeightHandle
 
 
 def push(text,fn):
@@ -28,8 +29,9 @@ class PaletteControls(QWidget):
         self.slider=QSlider(Qt.Orientation.Horizontal);self.slider.setRange(2,12);self.slider.setValue(5);self.slider.setFocusPolicy(Qt.FocusPolicy.StrongFocus);el.addWidget(self.slider)
         self.slider.valueChanged.connect(self.count.setValue);self.count.valueChanged.connect(self.count_changed)
         self.mode=QComboBox();self.mode.addItem('面积主色','area');self.mode.addItem('特色配色','distinctive');self.mode.currentIndexChanged.connect(self.reextract);el.addWidget(self.mode)
-        self.list=QListWidget();self.list.setMinimumHeight(150);self.list.setMaximumHeight(190);self.list.setIconSize(QSize(50,28));self.list.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove);self.list.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.list=QListWidget();self.list.setIconSize(QSize(50,28));self.list.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove);self.list.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.list.model().rowsMoved.connect(self.reordered);self.list.itemChanged.connect(self.lock_changed);el.addWidget(self.list)
+        self.height_handle=ListHeightHandle(self.list);el.addWidget(self.height_handle)
         hint=QLabel('勾选锁色 · 拖动排序 · 占比为估算值');hint.setObjectName('muted');hint.setWordWrap(True);el.addWidget(hint)
         row=QHBoxLayout();row.addWidget(push('图内取色',self.start_pick));row.addWidget(push('自选颜色',self.choose));el.addLayout(row)
         el.addWidget(push('保留锁色 · 重新提取',self.reextract));self.note=QLabel();self.note.setWordWrap(True);self.note.setObjectName('muted');el.addWidget(self.note)

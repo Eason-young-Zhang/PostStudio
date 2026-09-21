@@ -98,3 +98,21 @@ def test_palette_tabs_do_not_reserve_hidden_layout_page_height(app):
         assert panel.minimumSizeHint().height()<600
         assert scroll.horizontalScrollBar().maximum()==0
         if height==1600:assert scroll.verticalScrollBar().maximum()==0
+
+
+def test_palette_list_height_drag_keeps_selection_and_parameters(app):
+    from PySide6.QtCore import QPoint
+    from blockstudio.palette_widgets import PaletteControls
+    panel=PaletteControls();panel.resize(320,1000);panel.show();app.processEvents()
+    panel.list.addItems(['one','two','three']);panel.list.setCurrentRow(1)
+    before=copy.deepcopy(panel.params());handle=panel.height_handle;start=handle.rect().center()
+    QTest.mousePress(handle,Qt.MouseButton.LeftButton,pos=start)
+    QTest.mouseMove(handle,start+QPoint(0,130))
+    QTest.mouseRelease(handle,Qt.MouseButton.LeftButton,pos=start+QPoint(0,130));app.processEvents()
+    assert panel.list.height()==320
+    panel.tabs.setCurrentIndex(1);panel.tabs.setCurrentIndex(0);app.processEvents()
+    assert panel.list.height()==320 and panel.list.currentRow()==1 and panel.params()==before
+    QTest.keyClick(handle,Qt.Key.Key_Up);assert panel.list.height()==310
+    handle.resize_list(-500);assert panel.list.height()==120
+    handle.resize_list(9000);assert panel.list.height()==1200
+    QTest.mouseDClick(handle,Qt.MouseButton.LeftButton);assert panel.list.height()==190
