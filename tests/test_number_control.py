@@ -62,8 +62,7 @@ def test_numeric_rows_have_full_width_slider_and_compact_header(app):
     for tool in ('sample','border','watermark','palette'):
         panel.tool.setCurrentIndex(panel.tool.findData(tool))
         if tool=='palette':
-            from PySide6.QtWidgets import QTabWidget
-            panel.palette.findChild(QTabWidget).setCurrentIndex(1)
+            panel.palette.tabs.setCurrentIndex(1)
         if tool=='border':panel.border.ratio.setCurrentIndex(3)
         for _ in range(3):app.processEvents()
         assert scroll.horizontalScrollBar().maximum()==0
@@ -79,3 +78,23 @@ def test_numeric_rows_have_full_width_slider_and_compact_header(app):
             form=c.parentWidget().layout()
             if isinstance(form,QFormLayout):
                 assert form.getWidgetPosition(c)[1]==QFormLayout.ItemRole.SpanningRole
+
+
+def test_palette_tabs_do_not_reserve_hidden_layout_page_height(app):
+    from PySide6.QtWidgets import QScrollArea,QPushButton
+    from blockstudio.palette_widgets import PaletteControls
+    from blockstudio.app import STYLE
+    panel=PaletteControls();scroll=QScrollArea();scroll.setStyleSheet(STYLE)
+    scroll.setWidgetResizable(True);scroll.setWidget(panel);scroll.show()
+    for height in (600,1600):
+        scroll.resize(310,height)
+        panel.tabs.setCurrentIndex(1)
+        for _ in range(4):app.processEvents()
+        assert scroll.verticalScrollBar().maximum()>0
+        panel.tabs.setCurrentIndex(0)
+        for _ in range(4):app.processEvents()
+        button=next(b for b in panel.findChildren(QPushButton) if b.text()=='图内取色')
+        assert button.mapTo(panel,button.rect().topLeft()).y()<450
+        assert panel.minimumSizeHint().height()<600
+        assert scroll.horizontalScrollBar().maximum()==0
+        if height==1600:assert scroll.verticalScrollBar().maximum()==0

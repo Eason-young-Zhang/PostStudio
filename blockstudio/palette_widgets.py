@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt,Signal,QSize
 from PySide6.QtGui import QColor,QIcon,QPixmap
 from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QLabel,QComboBox,
     QSpinBox,QDoubleSpinBox,QSlider,QListWidget,QListWidgetItem,QAbstractItemView,QPushButton,QCheckBox,
-    QTabWidget,QColorDialog)
+    QTabBar,QColorDialog)
 from .palette_render import DEFAULT_PALETTE
 from .palette import hex_color
 from .effect_controls import ShadowControls
@@ -20,8 +20,8 @@ class PaletteControls(QWidget):
     pickRequested=Signal()
     def __init__(self):
         super().__init__();self.loading=False;self.manual=False;self.swatches=[];self.locked=[];self.background='#f1ede5';self.pick_target='swatch'
-        root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0)
-        tabs=QTabWidget();root.addWidget(tabs)
+        root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0);root.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.tabs=QTabBar();self.tabs.addTab("提色");self.tabs.addTab("排版");root.addWidget(self.tabs)
         extraction=QWidget();el=QVBoxLayout(extraction);el.setContentsMargins(0,12,0,0)
         row=QHBoxLayout();row.addWidget(QLabel('颜色数量'),1)
         self.count=QSpinBox();self.count.setRange(2,12);self.count.setValue(5);self.count.setKeyboardTracking(False);row.addWidget(self.count);el.addLayout(row)
@@ -33,7 +33,7 @@ class PaletteControls(QWidget):
         hint=QLabel('勾选锁色 · 拖动排序 · 占比为估算值');hint.setObjectName('muted');hint.setWordWrap(True);el.addWidget(hint)
         row=QHBoxLayout();row.addWidget(push('图内取色',self.start_pick));row.addWidget(push('自选颜色',self.choose));el.addLayout(row)
         el.addWidget(push('保留锁色 · 重新提取',self.reextract));self.note=QLabel();self.note.setWordWrap(True);self.note.setObjectName('muted');el.addWidget(self.note)
-        tabs.addTab(extraction,'提色')
+        el.addStretch();root.addWidget(extraction)
         page=QWidget();pl=QVBoxLayout(page);pl.setContentsMargins(0,12,0,0);form=QFormLayout();form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows);form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow);pl.addLayout(form)
         self.style=QComboBox();self.style.addItem('色条','strip');self.style.addItem('色卡环','ring');form.addRow('形态',self.style)
         self.proportional=QCheckBox('按颜色占比分段');form.addRow(self.proportional)
@@ -54,9 +54,14 @@ class PaletteControls(QWidget):
         self.source_size=(1,1);self.layout_controls=LayoutControls();pl.addWidget(self.layout_controls);self.layout_controls.changed.connect(self.emit_changed)
         self.photo_shadow=ShadowControls('照片悬浮阴影');pl.addWidget(self.photo_shadow);self.photo_shadow.changed.connect(self.emit_changed)
         self.card_shadow=ShadowControls('色卡悬浮阴影');pl.addWidget(self.card_shadow);self.card_shadow.changed.connect(self.emit_changed)
-        tabs.addTab(page,'排版')
+        pl.addStretch();root.addWidget(page);page.hide()
+        self.pages=(extraction,page)
+        self.tabs.currentChanged.connect(self.switch_page)
         for c in [self.style,self.side,self.output]:c.currentIndexChanged.connect(self.emit_changed)
         for c in [self.proportional,self.transparent,self.labels]:c.toggled.connect(self.emit_changed)
+    def switch_page(self,index):
+        for i,page in enumerate(self.pages):page.setVisible(i==index)
+        self.updateGeometry()
     def sync_slider(self,slider,value):
         slider.blockSignals(True);slider.setValue(round(value));slider.blockSignals(False)
     def emit_changed(self,*_):

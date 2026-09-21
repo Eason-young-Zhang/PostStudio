@@ -145,3 +145,7 @@ PYTHONPATH=. .venv/bin/python scripts/capture_manual.py
 ## 0.4.2 数值控件
 
 `number_control.NumberControl` 组合 QDoubleSpinBox 与 QSlider；`effect_controls.number` 为共享入口。存储值来自输入框；阻塞外层信号时仍同步滑条，避免加载和联动残留。滑条范围单独配置，不缩小输入框的合法范围。新增参数需设置可访问名称，并为像素／百分比切换指定常用范围。
+
+## 0.4.4 配色页签布局
+
+配色使用 QTabBar 和显隐页面，避免 QTabWidget 采用隐藏排版页的最小高度撑大提色页。页内尾部 stretch 吸收多余空间；根布局向顶对齐。回归覆盖短／长窗口中的页签往返与按钮位置。

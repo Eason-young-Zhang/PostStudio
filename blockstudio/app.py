@@ -97,7 +97,7 @@ class Window(QMainWindow):
 
     def build_ui(self):
         self.toolbar=QToolBar();self.toolbar.setMovable(False);self.addToolBar(self.toolbar)
-        brand=QLabel('POST / STUDIO');brand.setObjectName('brand');self.toolbar.addWidget(brand)
+        brand=QLabel('PostStudio');brand.setObjectName('brand');self.toolbar.addWidget(brand)
         for text,fn in [('新建',self.new_project),('打开',self.open_project),('保存',self.save_project),('导入图像',self.import_dialog)]:
             self.toolbar.addWidget(button(text,fn))
         self.toolbar.addSeparator();self.toolbar.addWidget(button('框出作品',self.start_frame));self.toolbar.addWidget(button('适合视图',self.fit));self.toolbar.addWidget(button('导出',self.export_selected))

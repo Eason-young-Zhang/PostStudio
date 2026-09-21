@@ -6,7 +6,7 @@
 
 ## 当前版本
 
-**0.4.3 本地测试版**，主要在 Apple Silicon Mac 上开发与验证。素材和图像处理留在本机；安装依赖后可离线运行。尚未提供经过 Apple 公证的安装包。
+**0.4.4 本地测试版**，主要在 Apple Silicon Mac 上开发与验证。素材和图像处理留在本机；安装依赖后可离线运行。尚未提供经过 Apple 公证的安装包。
 
 - 多画布自由布局、独立总览网格、回收站与撤销。
 - 分块取样、网格和单块移动、透明／纯色／渐变背景与阴影。
@@ -47,7 +47,7 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest -q
 zsh scripts/build-mac.sh
 ```
 
-当前 67 项测试通过。构建输出为 `dist/PostStudio.app`；构建脚本需要 macOS Command Line Tools，本机签名和公证不由此脚本提供。
+当前 68 项测试通过。构建输出为 `dist/PostStudio.app`；构建脚本需要 macOS Command Line Tools，本机签名和公证不由此脚本提供。
 
 ## 项目结构
 
