@@ -154,6 +154,8 @@ class Window(QMainWindow):
             entry=button(tool.label,lambda checked=False,key=tool_id:self.open_tool(tool_id=key))
             entry.setObjectName('toolEntry');entry.setMinimumHeight(40);entry.setToolTip('处理所选图像 · '+tool.label)
             rail.addWidget(entry);self.tool_buttons[tool_id]=entry
+        entry=button('拼图',lambda:self.open_collage());entry.setObjectName('toolEntry');entry.setMinimumHeight(40)
+        rail.addWidget(entry);self.tool_buttons['collage']=entry
         rail.addStretch();split.addWidget(self.tool_rail)
         split.setCollapsible(2,False);split.setStretchFactor(1,1);split.setSizes([225,805,160])
         self.panel=ToolPanel();self.panel.changed.connect(self.schedule_preview);self.panel.applyRequested.connect(self.apply_current)
@@ -206,6 +208,33 @@ class Window(QMainWindow):
 
     def show_help(self):
         QMessageBox.information(self,'使用说明','导入后，拖动照片摆放；拖右下角缩放。\n滚轮缩放视图，空格＋拖动平移，Shift 多选。\n\n在画布选择图像，点击右侧工具按钮进入二级页面。滑块或精确输入调整参数；拖动整组网格或单块，方向键微调。生成修改稿后返回画布。\n选择处理结果，点击“重新编辑”可回到它的输入与参数。\n\n“框出作品”后在画布拖出范围，选择作品框并导出。\n预设保存单工具参数，工作流保存有序步骤。\n\n项目完全保存在本机。窗口关闭前可保存，异常中断可恢复。')
+    def open_collage(self,target=None):
+        if self.job:return
+        ids=self.selected_ids()
+        if not target and not 1<=len(ids)<=10:
+            QMessageBox.information(self,'拼图','请先选择 1–10 张图像。');return
+        from .collage_widgets import CollageEditor
+        self.collage_page=CollageEditor(self.project,ids,target)
+        self.collage_page.back.connect(self.leave_collage)
+        self.collage_page.submit.connect(self.apply_collage)
+        self.pages.addWidget(self.collage_page);self.pages.setCurrentWidget(self.collage_page);self.toolbar.hide()
+        self.update_editor_actions()
+    def leave_collage(self):
+        page=self.collage_page
+        self.pages.setCurrentWidget(self.workspace);self.pages.removeWidget(page);page.deleteLater();self.collage_page=None
+        self.toolbar.show();self.update_editor_actions()
+    def apply_collage(self,save=False):
+        from .collage import create_asset
+        params=copy.deepcopy(self.collage_page.params);target=self.collage_page.target if save else None
+        self.history.record(self.project.data)
+        def work(job):return create_asset(self.project,params,target)
+        def done(asset):
+            selection=[]
+            if not target:selection=[self.project.placement(asset,self.board)['id']]
+            self.mark_dirty();self.leave_collage();self.refresh_all(selection)
+            self.statusBar().showMessage('已保存拼图修改' if target else '已生成独立拼图；可继续处理或导出')
+        self.start_job(work,done,cancellable=False)
+
     def open_tool(self,checked=False,tool_id=None,append=False):
         if self.job:return
         ids=self.selected_ids()
@@ -221,7 +250,7 @@ class Window(QMainWindow):
         self.update_editor_actions()
 
     def update_editor_actions(self):
-        editing=self.pages.currentWidget()==self.editor_page
+        editing=self.pages.currentWidget()!=self.workspace
         for action in self.actions():action.setEnabled(not editing and not self.job)
         self.menuBar().setEnabled(not editing and not self.job)
 
@@ -466,6 +495,7 @@ class Window(QMainWindow):
         if len(ids)!=1:return
         a=self.project.asset(ids[0])
         if not a.get('step'):self.statusBar().showMessage('源图尚无工具步骤，请选择工具开始处理。');return
+        if a['step']['tool']=='collage':self.open_collage(target=a['id']);return
         self.open_tool(tool_id=a['step']['tool']);self.reedit_target=a['id'];self.update_revision_action()
 
     def revision_reason(self):
@@ -627,6 +657,8 @@ class Window(QMainWindow):
 
     def undo_state(self,delta):
         if self.job:return
+        if getattr(self,'collage_page',None) is not None and self.pages.currentWidget()==self.collage_page:
+            self.collage_page.move_history(delta);return
         focus=QApplication.focusWidget()
         if isinstance(focus,(QLineEdit,QTextEdit,QPlainTextEdit)):
             if delta<0:focus.undo()

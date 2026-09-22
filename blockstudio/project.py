@@ -298,6 +298,10 @@ def validate_manifest(data):
     if data.get('schema') not in (1,2,3): raise ValueError('项目格式版本不受支持。')
     file_refs(data)
     def validate_step(step,allow_action=False):
+        if step.get('tool')=='collage':
+            from .collage import validate
+            if allow_action or step.get('version')!=1:raise ValueError('拼图仅支持多图编辑页。')
+            validate(step['params']);return
         if 'action' in step:
             if not allow_action or step['action'] not in ('name','export'):raise ValueError('项目包含未知流程动作。')
             if step.get('version',1)!=1:raise ValueError('流程动作版本不兼容。')
@@ -328,6 +332,10 @@ def validate_manifest(data):
     for a in data['assets']:
         if a.get('parent') and a['parent'] not in ids: raise ValueError('项目缺少输入图像。')
         if a.get('root') and a['root'] not in ids:raise ValueError('项目缺少原始图像。')
+    for a in data['assets']:
+        if any(id not in ids for id in a.get('sources',[])):raise ValueError('拼图缺少输入图像。')
+        if (a.get('step') or {}).get('tool')=='collage':
+            if a.get('sources')!=[s['asset'] for s in a['step']['params']['slots']]:raise ValueError('拼图来源不一致。')
     lookup={a['id']:a for a in data['assets']}
     for a in data['assets']:
         if a.get('kind')=='composition':
@@ -350,6 +358,7 @@ def validate_manifest(data):
         if id in visited:return
         active.add(id);asset=lookup[id]
         deps=[asset['parent']] if asset.get('parent') else []
+        deps.extend(asset.get('sources',[]))
         deps.extend(c['asset'] for c in asset.get('composition',{}).get('components',[]))
         for dep in deps:visit(dep)
         active.remove(id);visited.add(id)

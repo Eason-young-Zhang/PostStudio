@@ -46,6 +46,7 @@ def restore(project,entry_id):
 def dependencies(asset):
     refs={asset[k] for k in ('parent','root') if asset.get(k) and asset[k]!=asset['id']}
     refs.update(c['asset'] for c in asset.get('composition',{}).get('components',[]))
+    refs.update(asset.get('sources',[]))
     return refs
 
 
