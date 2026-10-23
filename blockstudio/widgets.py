@@ -148,6 +148,9 @@ class ToolPanel(QWidget):
             control=ParameterControl(label,low,default);form.addWidget(control)
             self.controls[key]=control;self.spins[key]=control.spin;self.sliders[key]=control.slider
             control.spin.valueChanged.connect(self.changed)
+        self.output_part=QComboBox();self.output_part.addItems(['保留的区块','挖出的部分']);self.output_part.currentIndexChanged.connect(self.changed);form.addWidget(self.output_part)
+        self.emit_complement=QCheckBox('同时生成互补部分（保留＋挖出）');self.emit_complement.toggled.connect(self.changed);form.addWidget(self.emit_complement)
+        self.emit_complement.setToolTip('两张图使用相同输入与最终取样区域，各自成为独立产物。透明且无阴影时叠放可还原输入。')
         self.transparent=QCheckBox('空缺透明');self.transparent.setChecked(True);self.transparent.toggled.connect(self.changed);form.addWidget(self.transparent)
         self.color='#f1ede5';row=QHBoxLayout();self.color_button=button('背景色',self.choose_color);row.addWidget(self.color_button);row.addWidget(button('图内取色',self.start_pick));form.addLayout(row);layout.addWidget(self.sample_box)
         self.watermark=WatermarkControls();self.watermark.hide();self.watermark.changed.connect(self.changed);layout.addWidget(self.watermark)
@@ -195,7 +198,7 @@ class ToolPanel(QWidget):
         self.preview.setFocus();self.preview.picking=True;self.preview.setCursor(Qt.CursorShape.CrossCursor);self.preview.update();self.pickModeChanged.emit(True)
     def step(self):
         id=self.tool.currentData();params={k:v.value() for k,v in self.spins.items()} if id=='sample' else {}
-        if id=='sample':params.update(transparent=self.transparent.isChecked(),color=self.color,moved_blocks=copy.deepcopy(self.moved_blocks))
+        if id=='sample':params.update(output_part='removed' if self.output_part.currentIndex() else 'kept',emit_complement=self.emit_complement.isChecked(),transparent=self.transparent.isChecked(),color=self.color,moved_blocks=copy.deepcopy(self.moved_blocks))
         if id=='sample':params.update(background_spec=self.background_controls.params(),shadow=self.shadow_controls.params())
         if id=='palette':params=self.palette.params()
         if id=='border':params=self.border.params()
@@ -206,6 +209,8 @@ class ToolPanel(QWidget):
         for k,v in step.get('params',{}).items():
             if k in self.spins:self.spins[k].setValue(v)
         if step['tool']=='sample':
+            self.output_part.setCurrentIndex(step['params'].get('output_part','kept')=='removed')
+            self.emit_complement.setChecked(step['params'].get('emit_complement',False))
             self.moved_blocks=copy.deepcopy(step['params'].get('moved_blocks',{}))
             self.background_controls.load(step['params'].get('background_spec',{}));self.shadow_controls.load(step['params'].get('shadow',{}))
             self.set_color(step['params'].get('color','#f1ede5'),emit=False);self.transparent.setChecked(step['params'].get('transparent',True))

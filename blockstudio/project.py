@@ -134,9 +134,27 @@ class Project:
         asset = dict(id=id, name=f"{source['name']} · {TOOLS[step['tool']].label}", file=rel, thumb=thumb,
                      width=result.shape[1], height=result.shape[0], parent=source['id'], root=source['root'],
                      step=copy.deepcopy(step), original=None, imported_half=False, regions=region)
+        if step['tool']=='sample' and step['params'].get('output_part')=='removed':asset['name']=source['name']+' · 挖出部分'
         if step['tool']=='watermark':asset['metadata_snapshot']=runtime['params']['_fields'];self.data['schema']=3
         with self.lock: self.data['assets'].append(asset)
         return asset
+
+    def execute_outputs(self,asset_id,step,fields=None,revision=None):
+        """Publish a primary result and optional sibling atomically, never a child mask."""
+        with self.lock:
+            before=copy.deepcopy(self.data)
+            try:
+                primary=self.revise_leaf(revision,step) if revision else self.execute(asset_id,step,fields)
+                outputs=[primary]
+                if step['tool']=='sample' and step.get('params',{}).get('emit_complement'):
+                    other=copy.deepcopy(step);other['version']=4
+                    other['params']['emit_complement']=False
+                    other['params']['output_part']='kept' if step['params'].get('output_part','kept')=='removed' else 'removed'
+                    outputs.append(self.execute(asset_id,other,fields))
+                return outputs
+            except Exception:
+                self.data=before
+                raise
 
     def revision_blocker(self,asset_id):
         from .trash import dependencies

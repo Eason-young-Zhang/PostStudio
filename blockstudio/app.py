@@ -521,10 +521,11 @@ class Window(QMainWindow):
             from shiboken6 import isValid
             for worker in retiring:
                 if isValid(worker):worker.wait()
-            return self.project.revise_leaf(target,step)
-        def done(asset):
+            return self.project.execute_outputs(self.project.asset(target)['parent'],step,revision=target)
+        def done(outputs):
+            for extra in outputs[1:]:selected_records.append(self.project.placement(extra,self.board)['id'])
             self.mark_dirty();self.leave_editor_after_save();self.refresh_all(selected_records)
-            self.statusBar().showMessage('已保存修改 · 未新增此图像的版本，可在工作台撤销')
+            self.statusBar().showMessage('已保存修改 · 互补部分如已勾选则另行生成，可在工作台撤销')
         self.start_job(work,done,cancellable=False)
     def leave_editor_after_save(self):
         self.panel.cancel_pick();self.history_timer.stop();self.pages.setCurrentWidget(self.workspace);self.toolbar.show()
@@ -626,7 +627,7 @@ class Window(QMainWindow):
             for origin,asset in records:last[origin]=asset
             for origin,a in records:
                 r=origins[origin]
-                if mode==0 and (display!=0 or last[origin]['id']==a['id']):
+                if (mode==0 and (display!=0 or last[origin]['id']==a['id'])) or a['id'] in result.get('side_outputs',[]):
                     offset=offsets.get(origin,0)+1;offsets[origin]=offset
                     new=self.project.placement(a,board,(r['x']+(r['width']+40)*offset) if r else None,r['y'] if r else None,r['width'] if r else 440)
                     if r:new['width']=r['width']

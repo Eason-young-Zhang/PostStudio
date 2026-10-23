@@ -6,7 +6,7 @@ from .watermark import watermark,DEFAULT_WATERMARK
 from .border import border,DEFAULT_BORDER
 from .palette_render import DEFAULT_PALETTE,apply_palette
 
-DEFAULT_SAMPLE = dict(block_x=64, block_y=64, gap_x=64, gap_y=64, offset_x=0, offset_y=0, transparent=True, color='#f1ede5', moved_blocks={})
+DEFAULT_SAMPLE = dict(block_x=64, block_y=64, gap_x=64, gap_y=64, offset_x=0, offset_y=0, output_part='kept', emit_complement=False, transparent=True, color='#f1ede5', moved_blocks={})
 
 
 def sample(a, p, scale=1.0):
@@ -33,6 +33,8 @@ def sample(a, p, scale=1.0):
         for left,top in rects:
             columns=(x>=left)&(x<left+bx);rows=(y>=top)&(y<top+by)
             mask[np.ix_(rows,columns)]=True
+    if p.get('output_part','kept')=='removed':
+        mask=~(mask if mask is not None else keep_y[:,None]&keep_x[None,:])
     cancel=p.get('_cancel')
     enhanced=p.get('background_spec',{}).get('kind','solid')!='solid' or p.get('shadow',{}).get('enabled')
     if enhanced:
@@ -71,7 +73,7 @@ class Tool:
 
 
 TOOLS = {
-    'sample': Tool('sample', '分块取样', sample, DEFAULT_SAMPLE, version=3),
+    'sample': Tool('sample', '分块取样', sample, DEFAULT_SAMPLE, version=4),
     'watermark': Tool('watermark','水印',watermark,DEFAULT_WATERMARK),
     'border': Tool('border','边框',border,DEFAULT_BORDER,version=2),
     'invert': Tool('invert', '反转色', invert, {}),

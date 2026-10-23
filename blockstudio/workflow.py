@@ -40,14 +40,14 @@ def preflight(project,ids,steps):
                 _,missing=expand(template,fields,'placeholder')
                 if missing:issues.append(a['name']+'：缺少 '+', '.join(dict.fromkeys(missing))+('（该张将在此节点停止）' if policy=='error' else '（按缺失字段规则处理）'))
     return dict(errors=list(dict.fromkeys(errors)),warnings=list(dict.fromkeys(issues)),inputs=len(ids),
-                nodes=len(active),outputs=len(ids)*sum('action' not in s for s in active),exports=len(ids)*sum(s.get('action')=='export' for s in active))
+                nodes=len(active),outputs=len(ids)*sum((1+int(s.get('tool')=='sample' and s.get('params',{}).get('emit_complement',False))) for s in active if 'action' not in s),exports=len(ids)*sum(s.get('action')=='export' for s in active))
 
 
 def execute_chain(project,ids,steps,cancel=None,progress=None):
     from .project import uid
     steps=copy.deepcopy([s for s in steps if s.get('enabled',True)])
     if len(ids)>10:raise ValueError('一次最多选择 10 张输入。')
-    report=dict(records=[],files=[],errors=[],warnings=[],cancelled=False,inputs=len(ids),completed=0)
+    report=dict(records=[],side_outputs=[],files=[],errors=[],warnings=[],cancelled=False,inputs=len(ids),completed=0)
     # Freeze all metadata before processing any input; templates remain unresolved in presets.
     fields=[{**project.ensure_metadata(id),'filename':project.asset(project.asset(id)['root'])['name'],'sequence':f'{i+1:03}'} for i,id in enumerate(ids)]
     total=len(ids)*len(steps);n=0
@@ -76,7 +76,9 @@ def execute_chain(project,ids,steps,cancel=None,progress=None):
                     finally:temp.unlink(missing_ok=True)
                     report['files'].append(str(path))
                 else:
-                    a=project.execute(parent,step,fields=fields[index]);parent=a['id']
+                    outputs=project.execute_outputs(parent,step,fields=fields[index]);a=outputs[0];parent=a['id']
+                    for extra in outputs[1:]:
+                        report['records'].append((id,extra));report['side_outputs'].append(extra['id'])
                     if named:a['name']=name
                     report['records'].append((id,a));missing=[]
                     if step.get('tool')=='watermark':
